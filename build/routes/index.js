@@ -41,14 +41,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var router = express_1.default.Router();
-var sharp = require('sharp');
-var path = require('node:path');
-var fs = require('fs');
+var sharp_1 = __importDefault(require("sharp"));
+var node_path_1 = __importDefault(require("node:path"));
+var fs_1 = __importDefault(require("fs"));
 var getquery = function (req) {
     var _a = req.query, filename = _a.filename, width = _a.width, height = _a.height;
+    if (isNaN(parseInt(width))) {
+        throw 'Width should be a number';
+    }
+    console.log(height);
+    if (isNaN(parseInt(height))) {
+        throw 'Height should be a number';
+    }
     var stringFilename = filename;
     var widthNumber = parseInt(width);
     var heightNumber = parseInt(height);
+    if (widthNumber <= 0) {
+        throw 'Width should be bigger than zero';
+    }
+    if (heightNumber <= 0) {
+        throw 'Height should be bigger than zero';
+    }
+    if (width.length != (widthNumber.toString()).length) {
+        throw 'Width should be a number';
+    }
+    if (height.length != (heightNumber.toString()).length) {
+        throw 'Height should be a number';
+    }
     return {
         filename: stringFilename,
         width: widthNumber,
@@ -56,39 +75,50 @@ var getquery = function (req) {
     };
 };
 var resize = function (filename, width, height) {
-    var finalPath = path.join(__dirname, '/..', "/../thumb/".concat(filename).concat(width).concat(height, ".jpg"));
-    return sharp(path.join(__dirname, '/..', "/../full/".concat(filename, ".jpg")))
+    var finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename).concat(width).concat(height, ".jpg"));
+    return (0, sharp_1.default)(node_path_1.default.join(__dirname, '/..', "/../full/".concat(filename, ".jpg")))
         .resize(width, height)
         .jpeg({ mozjpeg: true })
         .toFile(finalPath)
         .then(function () {
-        console.log('done');
         return finalPath;
     });
 };
-router.get('/images', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, filename, width, height, finalPath, img;
+router.get('/images', function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, filename, width, height, originalPath, finalPath, img, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
+                _b.trys.push([0, 3, , 4]);
                 _a = getquery(req), filename = _a.filename, width = _a.width, height = _a.height;
-                finalPath = path.join(__dirname, '/..', "/../thumb/".concat(filename).concat(width).concat(height, ".jpg"));
-                if (!!(fs.existsSync(finalPath))) return [3 /*break*/, 2];
-                console.log('Directory does not exist!');
+                originalPath = node_path_1.default.join(__dirname, '/..', "/../full/".concat(filename, ".jpg"));
+                if (!fs_1.default.existsSync(originalPath)) {
+                    throw 'There is no image with this name';
+                }
+                finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename).concat(width).concat(height, ".jpg"));
+                if (!!fs_1.default.existsSync(finalPath)) return [3 /*break*/, 2];
                 return [4 /*yield*/, resize(filename, width, height)];
             case 1:
                 _b.sent();
-                return [3 /*break*/, 3];
+                _b.label = 2;
             case 2:
-                console.log('Directory exists!');
-                _b.label = 3;
-            case 3:
                 console.log(finalPath);
-                img = fs.readFileSync(finalPath);
+                img = fs_1.default.readFileSync(finalPath);
                 res.writeHead(200);
                 res.end(img, 'binary');
-                return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 3:
+                err_1 = _b.sent();
+                next(err_1);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
+    });
+}); });
+router.use(function (err, req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        res.send(err);
+        return [2 /*return*/];
     });
 }); });
 exports.default = router;
