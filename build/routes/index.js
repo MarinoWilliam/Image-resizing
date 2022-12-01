@@ -49,7 +49,6 @@ var getquery = function (req) {
     if (isNaN(parseInt(width))) {
         throw 'Width should be a number';
     }
-    console.log(height);
     if (isNaN(parseInt(height))) {
         throw 'Height should be a number';
     }
@@ -62,10 +61,10 @@ var getquery = function (req) {
     if (heightNumber <= 0) {
         throw 'Height should be bigger than zero';
     }
-    if (width.length != (widthNumber.toString()).length) {
+    if (width.length != widthNumber.toString().length) {
         throw 'Width should be a number';
     }
-    if (height.length != (heightNumber.toString()).length) {
+    if (height.length != heightNumber.toString().length) {
         throw 'Height should be a number';
     }
     return {
@@ -75,7 +74,7 @@ var getquery = function (req) {
     };
 };
 var resize = function (filename, width, height) {
-    var finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename).concat(width).concat(height, ".jpg"));
+    var finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename, "-").concat(width, "-").concat(height, ".jpg"));
     return (0, sharp_1.default)(node_path_1.default.join(__dirname, '/..', "/../full/".concat(filename, ".jpg")))
         .resize(width, height)
         .jpeg({ mozjpeg: true })
@@ -95,14 +94,13 @@ router.get('/images', function (req, res, next) { return __awaiter(void 0, void 
                 if (!fs_1.default.existsSync(originalPath)) {
                     throw 'There is no image with this name';
                 }
-                finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename).concat(width).concat(height, ".jpg"));
+                finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename, "-").concat(width, "-").concat(height, ".jpg"));
                 if (!!fs_1.default.existsSync(finalPath)) return [3 /*break*/, 2];
                 return [4 /*yield*/, resize(filename, width, height)];
             case 1:
                 _b.sent();
                 _b.label = 2;
             case 2:
-                console.log(finalPath);
                 img = fs_1.default.readFileSync(finalPath);
                 res.writeHead(200);
                 res.end(img, 'binary');
