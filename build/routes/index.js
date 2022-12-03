@@ -41,11 +41,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var router = express_1.default.Router();
-var sharp_1 = __importDefault(require("sharp"));
 var node_path_1 = __importDefault(require("node:path"));
 var fs_1 = __importDefault(require("fs"));
+var resize_1 = require("../resize");
 var getquery = function (req) {
     var _a = req.query, filename = _a.filename, width = _a.width, height = _a.height;
+    if (typeof (filename) === 'undefined') {
+        throw 'no file name';
+    }
+    if (typeof (width) === 'undefined') {
+        throw 'no width';
+    }
+    if (typeof (height) === 'undefined') {
+        throw 'no height';
+    }
     if (isNaN(parseInt(width))) {
         throw 'Width should be a number';
     }
@@ -73,30 +82,24 @@ var getquery = function (req) {
         height: heightNumber,
     };
 };
-var resize = function (filename, width, height) {
-    var finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename, "-").concat(width, "-").concat(height, ".jpg"));
-    return (0, sharp_1.default)(node_path_1.default.join(__dirname, '/..', "/../full/".concat(filename, ".jpg")))
-        .resize(width, height)
-        .jpeg({ mozjpeg: true })
-        .toFile(finalPath)
-        .then(function () {
-        return finalPath;
-    });
-};
 router.get('/images', function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, filename, width, height, originalPath, finalPath, img, err_1;
+    var _a, filename, width, height, originalPath, thumb, finalPath, img, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
                 _a = getquery(req), filename = _a.filename, width = _a.width, height = _a.height;
                 originalPath = node_path_1.default.join(__dirname, '/..', "/../full/".concat(filename, ".jpg"));
+                thumb = node_path_1.default.join(__dirname, '/..', "/../thumb");
+                if (!fs_1.default.existsSync(thumb)) {
+                    fs_1.default.mkdirSync(thumb);
+                }
                 if (!fs_1.default.existsSync(originalPath)) {
                     throw 'There is no image with this name';
                 }
                 finalPath = node_path_1.default.join(__dirname, '/..', "/../thumb/".concat(filename, "-").concat(width, "-").concat(height, ".jpg"));
                 if (!!fs_1.default.existsSync(finalPath)) return [3 /*break*/, 2];
-                return [4 /*yield*/, resize(filename, width, height)];
+                return [4 /*yield*/, (0, resize_1.resize)(filename, width, height)];
             case 1:
                 _b.sent();
                 _b.label = 2;
@@ -115,6 +118,7 @@ router.get('/images', function (req, res, next) { return __awaiter(void 0, void 
 }); });
 router.use(function (err, req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
+        res.status(400);
         res.send(err);
         return [2 /*return*/];
     });

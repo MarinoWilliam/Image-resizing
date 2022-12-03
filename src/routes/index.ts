@@ -1,13 +1,22 @@
 import express, { Request } from 'express';
 const router = express.Router();
-import sharp from 'sharp';
 import path from 'node:path';
 import fs from 'fs';
+import {resize} from '../resize';
 
 const getquery = (
     req: Request
 ): { filename: string; width: number; height: number } => {
     const { filename, width, height } = req.query;
+    if (typeof(filename)==='undefined') {
+        throw 'no file name' 
+    }
+    if (typeof(width)==='undefined') {
+        throw 'no width'
+    }
+    if (typeof(height)==='undefined') {
+        throw 'no height'
+    }
     if (isNaN(parseInt(width as string))) {
         throw 'Width should be a number';
     }
@@ -36,25 +45,6 @@ const getquery = (
     };
 };
 
-const resize = (
-    filename: string,
-    width: number,
-    height: number
-): Promise<string> => {
-    const finalPath = path.join(
-        __dirname,
-        '/..',
-        `/../thumb/${filename}-${width}-${height}.jpg`
-    );
-    return sharp(path.join(__dirname, '/..', `/../full/${filename}.jpg`))
-        .resize(width, height)
-        .jpeg({ mozjpeg: true })
-        .toFile(finalPath)
-        .then(() => {
-            return finalPath;
-        });
-};
-
 router.get(
     '/images',
     async (
@@ -70,6 +60,14 @@ router.get(
                 '/..',
                 `/../full/${filename}.jpg`
             );
+            const thumb =path.join(
+                __dirname,
+                '/..',
+                `/../thumb`
+                );
+            if (!fs.existsSync(thumb)) {
+                fs.mkdirSync(thumb);
+            }
             if (!fs.existsSync(originalPath)) {
                 throw 'There is no image with this name';
             }
@@ -98,6 +96,7 @@ router.use(
         res: express.Response,
         next: express.NextFunction
     ) => {
+        res.status(400)
         res.send(err);
     }
 );
