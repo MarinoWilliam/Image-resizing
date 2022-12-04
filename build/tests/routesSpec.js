@@ -41,11 +41,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var supertest_1 = __importDefault(require("supertest"));
 var index_1 = __importDefault(require("../index"));
+var fs_1 = __importDefault(require("fs"));
+var node_path_1 = __importDefault(require("node:path"));
 var request = (0, supertest_1.default)(index_1.default);
 var endpoint = '/api/images';
-var successURL = "/api/images?filename=image2&width=7&height=45";
+var successURL = "/api/images?filename=image2&width=70&height=45";
 describe('Test endpoint responses', function () {
-    it('It should return status of 200', function () { return __awaiter(void 0, void 0, void 0, function () {
+    it('Should return status of 200', function () { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -64,7 +66,7 @@ describe('Test endpoint responses', function () {
             }
         });
     }); });
-    it('It should return status of 400', function () { return __awaiter(void 0, void 0, void 0, function () {
+    it('Should return status of 400', function () { return __awaiter(void 0, void 0, void 0, function () {
         var response, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -78,6 +80,30 @@ describe('Test endpoint responses', function () {
                 case 2:
                     error_2 = _a.sent();
                     console.log(error_2);
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    }); });
+    it('Should check if the file exists', function () { return __awaiter(void 0, void 0, void 0, function () {
+        var filePath, error_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    filePath = node_path_1.default.join(__dirname, "../../thumb/image2-70-45.jpg");
+                    //if (fs.existsSync(filePath)){
+                    fs_1.default.unlinkSync(filePath);
+                    //}
+                    return [4 /*yield*/, request.get(successURL)];
+                case 1:
+                    //}
+                    _a.sent();
+                    expect(fs_1.default.existsSync(filePath)).toBeTrue();
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_3 = _a.sent();
+                    console.log(error_3);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
